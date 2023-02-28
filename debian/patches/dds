@@ -1,0 +1,148 @@
+--- a/Makefile	2023-02-28 11:00:43.259748160 -0400
++++ b/Makefile	2023-02-28 11:03:09.818978631 -0400
+@@ -20,9 +20,10 @@
+ YOBJ = defs.c
+ MAN  = dealer.6 dealer.dpp.6
+ 
++LIBS = -ldds
+ 
+ dealer: ${OBJ} ${LOBJ} ${YOBJ} ${MAN}
+-	$(LINK.c) -o $@ ${OBJ}
++	$(LINK.c) -o $@ ${OBJ} ${LIBS}
+ 	
+ clean:
+ 	rm -f ${OBJ} ${LOBJ} ${YOBJ} ${MAN}
+--- a/dealer.c	2023-02-28 11:00:43.259748160 -0400
++++ b/dealer.c	2023-02-28 13:20:42.539993702 -0400
+@@ -6,6 +6,8 @@
+ #include <limits.h>
+ #include <signal.h>
+ 
++#include <dds/dll.h>
++
+ long seed = 0;
+ int quiet = 0;
+ char* input_file = 0;
+@@ -114,6 +116,7 @@
+ deal *deallist;
+ 
+ /* Function definitions */
++char *sprintcompact (deal, int);
+ void fprintcompact (FILE *, deal, int);
+ int trix (char);
+ void error (char *);
+@@ -292,7 +295,7 @@
+ int true_dd (deal d, int l, int c) {
+   if (loading && libdeal.valid) {
+     int resu = get_tricks ((l + 1) % 4, (c + 1) % 5);
+-    /* This will get the number of tricks EW can get.  If the user wanted NW, 
++    /* This will get the number of tricks EW can get.  If the user wanted NS, 
+        we have to subtract 13 from that number. */
+     return ((l == 0) || (l == 2)) ? 13 - resu : resu;
+   } else {
+@@ -322,33 +325,32 @@
+ 
+     fscanf (f, "%*[^\n]\nEnter argument line: %c", &res);
+     fclose (f);
+-    /* This will get the number of tricks EW can get.  If the user wanted NW, 
++    /* This will get the number of tricks EW can get.  If the user wanted NS, 
+        we have to subtract 13 from that number. */
+     return ((l == 1) || (l == 3)) ? 13 - trix (res) : trix (res);
+ #else
+-    FILE *f;
+-    char cmd[1024];
+-    char tn1[256],  tn2[256];
+-    char res;
+-
+-    f = fopen (tn1, "w+");
+-    if (f == 0 ) error ("Can't open temporary file");
+-    fprintcompact (f, d, 0);
+-    fprintf (f, "%c %c\n", "eswn"[l], "cdhsn"[c]);
+-    fclose (f);
+-    /* tmpnam (tn2); */
+-    mkstemp (tn2) ;
+-    sprintf (cmd, "bridge -d -q %s >%s", tn1, tn2);
+-    system (cmd);
+-    f = fopen (tn2, "r");
+-    if (f == 0) error ("Can't read output of analysis");
+-    fscanf (f, "%*[^\n]\n%c", &res);
+-    fclose (f);
+-    remove (tn1);
+-    remove (tn2);
+-    /* This will get the number of tricks EW can get.  If the user wanted NW, 
++    char *compact_deal;
++    struct dealPBN dpbn;
++    struct futureTricks ft;
++    int res_dds = 0;
++
++    compact_deal = sprintcompact (d, 1);
++    memcpy(dpbn.remainCards, compact_deal, strlen(compact_deal) + 1);
++    free (compact_deal);
++    dpbn.first = (l + 1) % 4; // eswn -> nesw
++    dpbn.trump = (c == 4) ? 4 : 3 - c; // cdhsn -> shdcn
++    dpbn.currentTrickSuit[0] = 0;
++    dpbn.currentTrickSuit[1] = 0;
++    dpbn.currentTrickSuit[2] = 0;
++    dpbn.currentTrickRank[0] = 0;
++    dpbn.currentTrickRank[1] = 0;
++    dpbn.currentTrickRank[2] = 0;
++    SolveBoardPBN(dpbn, -1, 1, 1, &ft, 0); 
++    res_dds = dpbn.first % 2 ? 13 - ft.score[0] : ft.score[0];
++    /* This will get the number of tricks EW can get.  If the user wanted NS, 
+        we have to subtract 13 from that number. */
+-    return ((l == 1) || (l == 3)) ? 13 - trix (res) : trix (res);
++
++    return res_dds;
+ #endif /* MSDOS */
+   }
+ }
+@@ -667,20 +669,42 @@
+   } /* end for each player */
+ }
+ 
+-void fprintcompact (FILE * f, deal d, int ononeline) {
++char *sprintcompact (deal d, int ononeline) {
++  char *compact_deal = malloc (sizeof(char) * 80);
+   char pt[] = "nesw";
+-  int s, p, r;
++  int s, p, r, i = 0;
++  if (ononeline) {
++    sprintf (compact_deal + i, "N:");
++    i += 2;
++  }
+   for (p = COMPASS_NORTH; p <= COMPASS_WEST; p++) {
+-    fprintf (f, "%c ", pt[p]);
++    if (!ononeline) {
++      sprintf (compact_deal + i, "%c ", pt[p]);
++      i += 2;
++    }
+     for (s = SUIT_SPADE; s >= SUIT_CLUB; s--) {
+       for (r = 12; r >= 0; r--)
+-        if (HAS_CARD (d, p, MAKECARD (s, r)))
+-          fprintf (f, "%c", ucrep[r]);
+-      if (s > 0) fprintf (f, ".");
++        if (HAS_CARD (d, p, MAKECARD (s, r))) {
++          sprintf (compact_deal + i, "%c", ucrep[r]);
++          i++;
++        }
++      if (s > 0) {
++        sprintf (compact_deal + i, ".");
++        i++;
++      }
+     }
+     /* OK to use \n as this is mainly intended for internal dealer use. */ 
+-    fprintf (f, ononeline ? " " : "\n");
++    sprintf (compact_deal + i, ononeline ? " " : "\n");
++    i++;
+   }
++  sprintf (compact_deal + i, "%c", '\0');
++  return compact_deal;
++}
++
++void fprintcompact (FILE * f, deal d, int ononeline) {
++    char *compact_deal = sprintcompact (d, ononeline);
++    fprintf (f, "%s", compact_deal);
++    free(compact_deal);
+ }
+ 
+ void printdeal (deal d) {
