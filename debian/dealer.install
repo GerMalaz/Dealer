@@ -1,0 +1,6 @@
+#!/usr/bin/dh-exec
+dealer usr/games
+Manual usr/share/doc/dealer
+Pre_Processors/dpp => usr/games/dealer.dpp
+Pre_Processors/Dist.pm usr/share/perl5/Dealer
+Post_Processors usr/share/doc/dealer

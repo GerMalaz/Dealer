@@ -1,0 +1,24 @@
+Bug#750982: Incompatible declarations of mycalloc
+
+--- a/dealer.c
++++ b/dealer.c
+@@ -387,7 +387,7 @@ void pointcount (int index, int value) {
+     tblPointcount[countindex][index] = value;
+ }
+ 
+-char * mycalloc (unsigned nel, unsigned siz) {
++char * mycalloc (size_t nel, size_t siz) {
+   char *p;
+ 
+   p = calloc (nel, siz);
+--- a/defs.y
++++ b/defs.y
+@@ -20,7 +20,7 @@ card  make_card(char,char);
+ void  clearpointcount(void);
+ void  clearpointcount_alt(int);
+ void  pointcount(int,int);
+-void* mycalloc(int,size_t);
++void* mycalloc(size_t,size_t);
+ int   make_contract (char, char);
+ 
+ int predeal_compass;     /* global variable for predeal communication */

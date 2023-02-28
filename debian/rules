@@ -1,0 +1,8 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_test:
+	./dealer -s 1 Examples/Descr.6c | tee test.out
+	grep 'king drops: 0.575647' test.out

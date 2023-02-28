@@ -1,0 +1,4 @@
+Depends:
+ @,
+Tests: dealer
+Restrictions: allow-stderr

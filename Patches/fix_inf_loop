@@ -1,0 +1,35 @@
+--- dealer-0.20040530.orig/dealer.c	2013-11-26 16:06:57.000000000 -0400
++++ dealer-0.20040530/dealer.c	2013-11-26 16:16:15.099377126 -0400
+@@ -79,6 +79,8 @@
+ deal fullpack;
+ deal stacked_pack;
+ 
++int cards_predealt = 0;
++
+ int swapping = 0;
+ int swapindex = 0;
+ int loading = 0;
+@@ -727,8 +729,9 @@
+       fullpack[i] = NO_CARD;
+       for (j = player * 13; j < (player + 1) * 13; j++)
+         if (stacked_pack[j] == NO_CARD) {
+-        stacked_pack[j] = onecard;
+-        return;
++          stacked_pack[j] = onecard;
++          cards_predealt++;
++          return;
+         }
+       yyerror ("More than 13 cards for one player");
+     }
+@@ -1644,7 +1647,10 @@
+   }
+   SRANDOM (seed);
+ 
+-  initprogram ();
++  if (cards_predealt < 52) { 
++    /* deck fully predealt, no need for initialization of random */
++    initprogram ();
++  }
+   if (maxgenerate == 0)
+     maxgenerate = 10000000;
+   if (maxproduce == 0)

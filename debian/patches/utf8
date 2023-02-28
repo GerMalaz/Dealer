@@ -1,0 +1,9 @@
+--- a/Pre_Processors/Dist.pm
++++ b/Pre_Processors/Dist.pm
+@@ -1,5 +1,5 @@
+ ############################################################
+-## Dist.pm package, v1.2, (c) 1997 François DELLACHERIE
++## Dist.pm package, v1.2, (c) 1997 FranÃ§ois DELLACHERIE
+ ##
+ ## Feel free to distribute as long as you keep
+ ##  the names of all contributors to this piece of perl in

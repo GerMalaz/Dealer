@@ -1,0 +1,84 @@
+--- dealer.c	2017-11-12 16:44:40.000000000 +0000
++++ dealer.c	2017-11-12 16:58:49.000000000 +0000
+@@ -4,6 +4,7 @@
+ #include <assert.h>
+ #include <string.h>
+ #include <limits.h>
++#include <signal.h>
+ 
+ long seed = 0;
+ int quiet = 0;
+@@ -80,6 +81,8 @@
+ deal stacked_pack;
+ 
+ int cards_predealt = 0;
++int time_limit = 0;
++int time_is_up_no_hands_produced = 0;
+ 
+ int swapping = 0;
+ int swapindex = 0;
+@@ -1550,6 +1553,10 @@
+   printf ("\n");
+ }
+ 
++void sigalrm_handler (int signal) {
++  if (nprod == 0) time_is_up_no_hands_produced = 1;
++}
++
+ int main (int argc, char **argv) {
+   int seed_provided = 0;
+   extern int optind;
+@@ -1565,7 +1572,7 @@
+ 
+   gettimeofday (&tvstart, (void *) 0);
+ 
+-  while ((c = getopt (argc, argv, "023ehuvmqp:g:s:l:V")) != -1) {
++  while ((c = getopt (argc, argv, "023ehuvmqp:g:s:t:l:V")) != -1) {
+     switch (c) {
+       case '0':
+       case '2':
+@@ -1603,6 +1610,13 @@
+             exit (-1);
+         }
+         break;
++      case 't':
++        time_limit = atoi (optarg);
++	if (time_limit > 0) {
++		signal (SIGALRM, sigalrm_handler);
++		alarm(time_limit);
++	}
++        break;
+       case 'u':
+         uppercase = 1;
+         break;
+@@ -1675,6 +1689,9 @@
+               fprintf (stderr, "Calculating... %2d%% complete\r",
+                100 * nprod / maxproduce);
+           }
++        } 
++        if (time_is_up_no_hands_produced) {
++            break;  
+         }
+       }
+       break;
+@@ -1741,5 +1758,6 @@
+              (tvstop.tv_sec + tvstop.tv_usec / 1000000.0 -
+              (tvstart.tv_sec + tvstart.tv_usec / 1000000.0)), crlf);
+   }
++  if (time_is_up_no_hands_produced) exit(1);
+   return 0;
+ }
+--- a/dealer.pod	2017-11-11 18:14:23.000000000 +0000
++++ b/dealer.pod	2017-11-11 18:17:17.000000000 +0000
+@@ -66,6 +66,11 @@
+ Uses number as the seed for the random generator, running the program twice
+ with the same seed will produce the same sequence of hands.
+ 
++=item B<-t> I<number>
++
++Aborts execution after number of seconds if no hands have been produced
++under the given conditions.
++
+ =item B<-u>
+ 
+ Select uppercase for the symbols "AKQJT" (default is lowercase).

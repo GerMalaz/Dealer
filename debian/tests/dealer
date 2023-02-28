@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -eux
+
+PATH=$PATH:/usr/games
+
+dealer -s 1 /usr/share/doc/dealer/examples/Descr.6c | tee test.out
+grep 'king drops: 0.575647' test.out
+
+echo 'shape{north, 2-xxx}' | dealer.dpp | grep 'shape(north,0xxx + 1xxx + 2xxx)'

@@ -1,0 +1,58 @@
+--- a/dealer.c
++++ b/dealer.c
+@@ -39,6 +39,9 @@ char* input_file = 0;
+ 
+ #include "getopt.h"
+ 
++/* define global variables in dealer.h only here */
++#define EXTERN
++
+ #include "tree.h"
+ #include "pointcount.h"
+ #include "dealer.h"
+--- a/dealer.h
++++ b/dealer.h
+@@ -1,16 +1,20 @@
+ #ifndef DEALER_H
+ #define DEALER_H
+ 
++#ifndef EXTERN
++#define EXTERN extern
++#endif
++
+ typedef unsigned char card;
+ 
+ typedef card deal[52];
+ 
+ static char *player_name[] = { "North", "East", "South", "West" };
+ 
+-int verbose;
++EXTERN int verbose;
+ 
+ /* Changes for cccc and quality */
+-struct context {
++EXTERN struct context {
+   deal *pd ; /* pointer to current deal */
+   struct handstat *ps ; /* Pointer to stats of current deal */
+ } c;
+@@ -45,14 +49,14 @@ struct handstat {
+     int hs_totalcounts[idxEnd];         /* totals of the above */
+ } ;
+ 
+-struct handstat hs[4] ;
++EXTERN struct handstat hs[4] ;
+ 
+-deal curdeal;
++EXTERN deal curdeal;
+ 
+-int maxgenerate;
+-int maxdealer;
+-int maxvuln;
+-int will_print;
++EXTERN int maxgenerate;
++EXTERN int maxdealer;
++EXTERN int maxvuln;
++EXTERN int will_print;
+ 
+ #define printcompact(d) (fprintcompact(stdout, d, 0))
+ #define printoneline(d) (fprintcompact(stdout, d, 1))

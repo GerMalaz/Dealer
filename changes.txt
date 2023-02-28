@@ -1,0 +1,9 @@
+1. Definition of yyval and d2n added in defs.y (required by latest apple compiler)
+
+2. From bridgebase/Gerardo: skip call to initprogram() if there are 52 cards
+   predealt.  (As nothing needs to be don).
+
+3. From BB: -t flag added, program stops after t seconds if no hands are 
+   produced. 
+
+4. Removed tmpnam call, use mkstemp instead to avoid warnings on compilation.

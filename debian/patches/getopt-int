@@ -1,0 +1,15 @@
+Bug#882528: dealer: test hang on architectures where char is unsigned
+
+getopt() is run in an infinite loop if c is unsigned.
+
+--- a/dealer.c
++++ b/dealer.c
+@@ -1551,7 +1551,7 @@ int main (int argc, char **argv) {
+   int seed_provided = 0;
+   extern int optind;
+   extern char *optarg;
+-  char c;
++  int c;
+   int errflg = 0;
+   int progressmeter = 0;
+   int i=0;

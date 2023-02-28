@@ -1,0 +1,60 @@
+Move Dist to Dealer namespace, sort shapes for reproducible results
+
+--- a/Pre_Processors/dpp
++++ b/Pre_Processors/dpp
+@@ -1,6 +1,6 @@
+-#!/usr/bin/perl -I.
++#!/usr/bin/perl
+ 
+-use Dist;
++use Dealer::Dist;
+ use strict;
+ use Carp;
+ 
+@@ -8,7 +8,7 @@ sub preshape {
+     my @results;
+     my $shapes = shift;
+     my @shapes = split(/(\s+[-+]\s+)/, $shapes);
+-    my $s = Dist->new;
++    my $s = Dealer::Dist->new;
+ 
+     unshift @shapes, ' + ' unless $shapes =~ /^\s+([-+])/;
+     while(@shapes) {
+--- a/Pre_Processors/Dist.pm
++++ b/Pre_Processors/Dist.pm
+@@ -8,7 +8,7 @@
+ ## sr007-2@dial.oleane.com
+ ############################################################
+ 
+-package Dist;
++package Dealer::Dist;
+ use strict;
+ use Carp;
+ 
+@@ -66,7 +66,7 @@ sub _permute_shapes { # permute an array
+ 	    $shapes{_permute_one_shape($shape, $_)}++;
+ 	}
+     }
+-    return(keys %shapes);
++    return(sort keys %shapes);
+ }
+ 	
+ 
+@@ -120,7 +120,7 @@ sub _reduce { # permute a set of shapes
+ 	$permutation && ($permuted = _permute_one_shape($_, $permutation));
+ 	$jivaro{$permuted || $_}++;
+     }
+-    @$shape_ref = keys %jivaro;
++    @$shape_ref = sort keys %jivaro;
+ }
+ 
+ sub _reduce_by_ordering_suits {
+@@ -128,7 +128,7 @@ sub _reduce_by_ordering_suits {
+     for (@_) {
+ 	$jivaro{join '', sort {$b cmp $a} split('', $_)}++;
+     }
+-    return keys %jivaro;
++    return sort keys %jivaro;
+ }
+ 
+ 

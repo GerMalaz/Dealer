@@ -1,0 +1,29 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dealer
+Source: https://henku.home.xs4all.nl/software/dealer.html
+Files-Excluded:
+ ._*
+ */._*
+ dealer.html
+ getopt.*
+ MSDOS/*
+ Random/*
+ __random.c
+Comment: This package was debianized by Christoph Berg <cb@df7cb.de> on
+ Fri, 17 Jun 2005 16:24:24 +0200.
+ .
+ It was originally downloaded from:
+   http://www.dombo.org/henk/dealer.html
+
+Files: *
+Copyright:
+ Public domain.
+ Authors:
+  Hans van Staveren <sater@sater.home.cs.vu.nl>
+  Henk Uijterwaal <henk@ripe.net>
+License: dealer
+ This program is hereby put in the public domain. Do with it whatever
+ you want, but I would like you not to redistribute it in modified form
+ without mentioning the fact of modification. I will accept bug reports
+ and modification requests, without any obligation of course, but fixing
+ bugs someone else put in is beyond me.
